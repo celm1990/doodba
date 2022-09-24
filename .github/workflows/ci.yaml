@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - doodba_custom
   schedule:
     # See https://crontab.guru/weekly
     - cron: 0 0 * * 0
@@ -51,12 +51,18 @@ jobs:
             python_version: "3.9"
           - odoo_version: "13.0"
             pg_version: "14"
-            python_version: "3.9"
+            python_version: "3.7"
+          - odoo_version: "12.0"
+            pg_version: "12"
+            python_version: "3.7"
+          - odoo_version: "11.0"
+            pg_version: "12"
+            python_version: "3.7"
     env:
       # Indicates what's the equivalent to tecnativa/doodba:latest image
       LATEST_RELEASE: "17.0"
       # Variables found by default in Docker Hub builder
-      DOCKER_REPO: tecnativa/doodba
+      DOCKER_REPO: celm1990/doodba
       DOCKER_TAG: ${{ matrix.odoo_version }}
       GIT_SHA1: ${{ github.sha }}
       # Other variables to configure tests and execution environment
@@ -79,10 +85,12 @@ jobs:
       # Build images
       - run: poetry run ./hooks/build
       # Test
-      - run: poetry run python -m unittest -v tests
+      #- run: poetry run python -m unittest -v tests
       # Push
       - name: push to docker hub
-        if: github.repository == 'Tecnativa/doodba' && github.ref == 'refs/heads/master'
+        if:
+          github.repository == 'celm1990/doodba' && github.ref ==
+          'refs/heads/doodba_custom'
         env:
           REGISTRY_HOST: docker.io
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
