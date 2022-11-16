@@ -124,7 +124,11 @@ class ScaffoldingCase(unittest.TestCase):
                     "-xc",
                     'test "$(addons list -dw private_addon -W dummy_addon)" == base,website',
                 ),
-                ("bash", "-xc", 'test "$(addons list -nd)" == base,iap',),
+                (
+                    "bash",
+                    "-xc",
+                    'test "$(addons list -nd)" == base,iap',
+                ),
                 (
                     "bash",
                     "-xc",
@@ -622,7 +626,11 @@ class ScaffoldingCase(unittest.TestCase):
                     "/opt/odoo/auto/addons/addon_alias/__openerp__.py",
                 ),
                 # verify that symlinking outside the src directory doesn't enable changing permission of important stuff
-                ("bash", "-c", '[[ "$(stat -c %U:%G /bin/date)" == "root:root" ]]',),
+                (
+                    "bash",
+                    "-c",
+                    '[[ "$(stat -c %U:%G /bin/date)" == "root:root" ]]',
+                ),
                 # verify that everything in src dir (except symlinks) is accessible by odoo
                 (
                     "bash",

@@ -18,7 +18,7 @@ apt_deps="$apt_deps libxml2-dev libxslt1-dev"
 apt_deps="$apt_deps libjpeg-dev libfreetype6-dev
     liblcms2-dev libopenjpeg-dev libtiff5-dev tk-dev tcl-dev"
 # psutil
-apt_deps="$apt_deps linux-headers-amd64"
+#apt_deps="$apt_deps linux-headers-amd64"
 # psycopg2
 apt_deps="$apt_deps libpq-dev"
 # python-ldap

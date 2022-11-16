@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - 8.0
   schedule:
     # See https://crontab.guru/weekly
     - cron: 0 0 * * 0
@@ -33,26 +33,14 @@ jobs:
       fail-fast: false
       matrix:
         # Test modern Odoo versions with latest Postgres version
-        pg_version: ["12"]
+        pg_version: ["10"]
         odoo_version:
-          - "14.0"
-          - "13.0"
-          - "12.0"
-          - "11.0"
-          - "10.0"
-        # Test older Odoo versions with older Postgres versions
-        include:
-          - odoo_version: "9.0"
-            pg_version: "11"
-          - odoo_version: "8.0"
-            pg_version: "10"
-          - odoo_version: "7.0"
-            pg_version: "9.6"
+          - "8.0"
     env:
-      # Indicates what's the equivalent to tecnativa/doodba:latest image
+      # Indicates what's the equivalent to celm1990/doodba:latest image
       LATEST_RELEASE: "14.0"
       # Variables found by default in Docker Hub builder
-      DOCKER_REPO: tecnativa/doodba
+      DOCKER_REPO: celm1990/doodba
       DOCKER_TAG: ${{ matrix.odoo_version }}
       GIT_SHA1: ${{ github.sha }}
       # Other variables to configure tests and execution environment
@@ -70,10 +58,10 @@ jobs:
       # Build images
       - run: poetry run ./hooks/build
       # Test
-      - run: poetry run python -m unittest -v tests
+      # - run: poetry run python -m unittest -v tests
       # Push
       - name: push to docker hub
-        if: github.repository == 'Tecnativa/doodba' && github.ref == 'refs/heads/master'
+        if: github.repository == 'celm1990/doodba' && github.ref == 'refs/heads/8.0'
         env:
           REGISTRY_HOST: docker.io
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}

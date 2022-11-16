@@ -1,11 +1,11 @@
-FROM debian:8 AS base
+FROM ubuntu:16.04 AS base
 
 EXPOSE 8069 8072
 
 ARG GEOIP_UPDATER_VERSION=4.1.5
 ARG MQT=https://github.com/OCA/maintainer-quality-tools.git
 ARG WKHTMLTOPDF_VERSION=0.12.5
-ARG WKHTMLTOPDF_CHECKSUM='2583399a865d7604726da166ee7cec656b87ae0a6016e6bce7571dcd3045f98b'
+ARG WKHTMLTOPDF_CHECKSUM='df203cee4dc9b3efb8d0cd6fc25fa819883224f50c75b76bd9c856903711dc14'
 ENV DB_FILTER=.* \
     DEPTH_DEFAULT=1 \
     DEPTH_MERGE=100 \
@@ -34,14 +34,11 @@ ENV DB_FILTER=.* \
     WDB_WEB_PORT=1984 \
     WDB_WEB_SERVER=localhost
 
-# Other requirements and recommendations to run Odoo
-# See https://github.com/$ODOO_SOURCE/blob/$ODOO_VERSION/debian/control
-RUN sed -Ei 's@(^deb http://deb.debian.org/debian jessie-updates main$)@#\1@' /etc/apt/sources.list \
-    && apt-get update \
+RUN apt-get update \
     && apt-get -y upgrade \
     && apt-get install -y --no-install-recommends \
         python ruby-compass \
-        fontconfig libfreetype6 libxml2 libxslt1.1 libjpeg62-turbo zlib1g \
+        fontconfig libfreetype6 libxml2 libxslt1.1 zlib1g \
         fonts-liberation \
         libfreetype6 liblcms2-2 libopenjpeg5 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
@@ -49,15 +46,13 @@ RUN sed -Ei 's@(^deb http://deb.debian.org/debian jessie-updates main$)@#\1@' /e
         bzip2 ca-certificates curl gettext git nano \
         openssh-client telnet xz-utils \
     && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python /dev/stdin \
-    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    && curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -yqq nodejs \
-    && curl -SLo fonts-liberation2.deb http://ftp.debian.org/debian/pool/main/f/fonts-liberation2/fonts-liberation2_2.00.1-3_all.deb \
-    && dpkg --install fonts-liberation2.deb \
-    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.jessie_amd64.deb \
+    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.xenial_amd64.deb \
     && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
     && (dpkg --install wkhtmltox.deb || true) \
     && apt-get install -yqq --no-install-recommends --fix-broken \
-    && rm fonts-liberation2.deb wkhtmltox.deb \
+    && rm wkhtmltox.deb \
     && wkhtmltopdf --version \
     && curl --silent -L --output geoipupdate_${GEOIP_UPDATER_VERSION}_linux_amd64.deb https://github.com/maxmind/geoipupdate/releases/download/v${GEOIP_UPDATER_VERSION}/geoipupdate_${GEOIP_UPDATER_VERSION}_linux_amd64.deb \
     && dpkg -i geoipupdate_${GEOIP_UPDATER_VERSION}_linux_amd64.deb \
@@ -65,12 +60,12 @@ RUN sed -Ei 's@(^deb http://deb.debian.org/debian jessie-updates main$)@#\1@' /e
     && rm -Rf /var/lib/apt/lists/*
 
 # Special case to get latest PostgreSQL client in 250-postgres-client
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
-    && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+RUN echo 'deb http://apt-archive.postgresql.org/pub/repos/apt xenial-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
+    && curl -SL --insecure https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 # Special case to get latest Less and PhantomJS
 RUN ln -s /usr/bin/nodejs /usr/local/bin/node \
-    && npm install -g less@2 less-plugin-clean-css@1 phantomjs-prebuilt@2 \
+    && npm install -g less@2 less-plugin-clean-css@1 \
     && rm -Rf ~/.npm /tmp/*
 
 # Special case to get bootstrap-sass, required by Odoo for Sass assets
@@ -116,8 +111,8 @@ RUN virtualenv --system-site-packages /qa/venv \
     && pip install --no-cache-dir \
         click \
         coverage \
-        flake8 \
-        pylint-odoo \
+        #flake8 \
+        #pylint-odoo \
         six \
     && npm install --loglevel error --prefix /qa 'eslint@<6' \
     && deactivate \
