@@ -3,6 +3,7 @@
 """Generate Odoo server configuration from templates"""
 
 import os
+import traceback
 from contextlib import closing
 from string import Template
 
@@ -36,8 +37,10 @@ logger.info("Merging found configuration files in %s", TARGET_FILE)
 for dir_ in CONFIG_DIRS:
     try:
         for file_ in sorted(os.listdir(dir_)):
+            logger.info(traceback.format_exc())
             parser.read(os.path.join(dir_, file_))
-    except OSError:  # TODO Use FileNotFoundError when we drop python 2
+    except OSError as ex:  # TODO Use FileNotFoundError when we drop python 2
+        logger.info(traceback.format_exc())
         continue
 
 # Write it to a memory string object
@@ -48,7 +51,7 @@ with closing(StringIO()) as resultfp:
     result = resultfp.read()
     # Expand environment variables found within
     result = Template(result).substitute(os.environ)
-    logger.debug("Resulting configuration:\n%s", result)
+    logger.info("Resulting configuration:\n%s", result)
     # Write it to destination
     with open(TARGET_FILE, "w") as targetfp:
         targetfp.write(result)

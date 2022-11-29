@@ -16,7 +16,7 @@ apt-get update
 apt_deps="$apt_deps libxml2-dev libxslt1-dev"
 # Pillow
 apt_deps="$apt_deps libjpeg-dev libfreetype6-dev
-    liblcms2-dev libopenjpeg-dev libtiff5-dev tk-dev tcl-dev"
+    liblcms2-dev libtiff5-dev tk-dev tcl-dev"
 # psutil
 #apt_deps="$apt_deps linux-headers-amd64"
 # psycopg2
@@ -51,6 +51,6 @@ if [ "$ODOO_VERSION" == "10.0" ]; then
 fi
 
 # Remove all installed garbage
-apt-get -y purge $apt_deps
-apt-get -y autoremove
-rm -Rf /var/lib/apt/lists/* /tmp/* || true
+#apt-get -y purge $apt_deps
+#apt-get -y autoremove
+#rm -Rf /var/lib/apt/lists/* /tmp/* || true

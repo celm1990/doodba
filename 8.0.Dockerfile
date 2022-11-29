@@ -1,11 +1,11 @@
-FROM ubuntu:16.04 AS base
+FROM ubuntu:18.04 AS base
 
 EXPOSE 8069 8072
 
 ARG GEOIP_UPDATER_VERSION=4.1.5
 ARG MQT=https://github.com/OCA/maintainer-quality-tools.git
 ARG WKHTMLTOPDF_VERSION=0.12.5
-ARG WKHTMLTOPDF_CHECKSUM='df203cee4dc9b3efb8d0cd6fc25fa819883224f50c75b76bd9c856903711dc14'
+ARG WKHTMLTOPDF_CHECKSUM='db48fa1a043309c4bfe8c8e0e38dc06c183f821599dd88d4e3cea47c5a5d4cd3'
 ENV DB_FILTER=.* \
     DEPTH_DEFAULT=1 \
     DEPTH_MERGE=100 \
@@ -34,21 +34,38 @@ ENV DB_FILTER=.* \
     WDB_WEB_PORT=1984 \
     WDB_WEB_SERVER=localhost
 
-RUN apt-get update \
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get update \
+    && apt-get install -y --no-install-recommends software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
     && apt-get -y upgrade \
     && apt-get install -y --no-install-recommends \
-        python ruby-compass \
-        fontconfig libfreetype6 libxml2 libxslt1.1 zlib1g \
+        python ruby-compass gpg-agent \
+        fontconfig libfreetype6 zlib1g \
         fonts-liberation \
-        libfreetype6 liblcms2-2 libopenjpeg5 libtiff5 tk tcl libpq5 \
+        libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
         locales-all zlibc \
         bzip2 ca-certificates curl gettext git nano \
         openssh-client telnet xz-utils \
+        libjpeg-dev  libwebp-dev tcl8.6-dev tk8.6-dev libcups2-dev \
+        libffi-dev libssl-dev libsasl2-dev libldap2-dev \
+        libpq-dev libxmlsec1-dev \
+        zlib1g-dev libzip-dev  \
+        libtiff5-dev libjpeg8-dev libfreetype6-dev liblcms2-dev\
+        python-dev python2.7-dev software-properties-common \
+        python-cherrypy3 python-formencode python-webdav \
+        python-egenix-mxdatetime python-pychart python-mako \
+        python-feedparser python-libxslt1  python-openid python-passlib python-cups python-lxml \
+        libxml2-dev libxslt1-dev python-dev \
+        openjdk-8-jdk ttf-mscorefonts-installer \
+    && apt-get remove python-openssl \
     && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -yqq nodejs \
-    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.xenial_amd64.deb \
+    && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.bionic_amd64.deb \
     && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
     && (dpkg --install wkhtmltox.deb || true) \
     && apt-get install -yqq --no-install-recommends --fix-broken \
@@ -60,7 +77,7 @@ RUN apt-get update \
     && rm -Rf /var/lib/apt/lists/*
 
 # Special case to get latest PostgreSQL client in 250-postgres-client
-RUN echo 'deb http://apt-archive.postgresql.org/pub/repos/apt xenial-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
+RUN echo 'deb http://apt-archive.postgresql.org/pub/repos/apt bionic-pgdg-archive main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL --insecure https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 # Special case to get latest Less and PhantomJS
