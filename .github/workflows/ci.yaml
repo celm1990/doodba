@@ -36,6 +36,7 @@ jobs:
         pg_version: ["10"]
         odoo_version:
           - "8.0"
+          - "10.0"
     env:
       # Indicates what's the equivalent to celm1990/doodba:latest image
       LATEST_RELEASE: "14.0"
