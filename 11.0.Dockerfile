@@ -55,10 +55,18 @@ RUN apt-get -qq update \
         zlibc \
         apt-transport-https \
         ca-certificates \
+        libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
+        libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
+        libjpeg-dev  libwebp-dev tcl8.6-dev tk8.6-dev libcups2-dev \
+        libffi-dev libssl-dev libsasl2-dev libldap2-dev \
+        libpq-dev libxmlsec1-dev \
+        libtiff5-dev libfreetype6-dev liblcms2-dev\
+        python3-dev software-properties-common \
+        libxml2-dev libxslt1-dev \
     && echo 'deb https://apt-archive.postgresql.org/pub/repos/apt stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && curl https://bootstrap.pypa.io/pip/get-pip.py | python3 /dev/stdin \
-    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    && curl -sL https://deb.nodesource.com/setup_7.x | bash - \
     && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
     && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
