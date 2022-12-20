@@ -38,10 +38,15 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
+    && apt-get install -y --no-install-recommends software-properties-common ubuntu-restricted-extras \
     && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get -y upgrade \
+    && apt-get -y upgrade
+RUN DEBIAN_FRONTEND=noninteractive \
+    echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
     && apt-get install -y --no-install-recommends \
+        openjdk-8-jdk ttf-mscorefonts-installer
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends \
         python ruby-compass gpg-agent \
         fontconfig libfreetype6 zlib1g \
         fonts-liberation \
@@ -60,11 +65,11 @@ RUN DEBIAN_FRONTEND=noninteractive \
         python-egenix-mxdatetime python-pychart python-mako \
         python-feedparser python-libxslt1  python-openid python-passlib python-cups python-lxml \
         libxml2-dev libxslt1-dev python-dev \
-        openjdk-8-jdk ttf-mscorefonts-installer \
     && apt-get remove python-openssl \
     && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python /dev/stdin \
-    && curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get install -yqq nodejs \
+    && curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get install -yqq nodejs xfonts-base xfonts-75dpi \
     && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.bionic_amd64.deb \
     && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
     && (dpkg --install wkhtmltox.deb || true) \
