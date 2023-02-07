@@ -50,6 +50,38 @@ if [ "$ODOO_VERSION" == "10.0" ]; then
     pip install astor
 fi
 
+pip install unicodecsv \
+        "unidecode<1.3.0" \
+        pathlib \
+        "XlsxWriter==0.9.3" \
+        "git+https://github.com/aeroo/aeroolib@b591d23c98990fc358b02b3b78d46290eadb7277" \
+        pysftp \
+        num2words \
+        recaptcha-client \
+        suds \
+        "cryptography==3.3" \
+        "xmlsig==0.1.0" \
+        "xades==0.2.1" \
+        "pyopenssl==19.1.0" \
+        "pyutil==3.0.0" \
+        pyBarcode \
+        python-utils \
+        utils \
+        python-docx \
+        "Werkzeug==0.11.11" \
+        unittest2 \
+        "Markdown==2.0.1" \
+        "MarkupSafe==0.23" \
+        "setuptools==33.1.1" \
+        pillow \
+        "bcrypt==3.1.6" \
+        "paramiko==2.4.2" \
+        "xlrd==1.0.0" \
+        "Babel==2.3.4" \
+        "decorator==4.0.10" \
+        "docutils==0.12" \
+        "gevent==1.1.2" \
+        psycopg2-binary \
 # Remove all installed garbage
 #apt-get -y purge $apt_deps
 #apt-get -y autoremove
