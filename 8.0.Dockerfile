@@ -39,16 +39,22 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common ubuntu-restricted-extras \
+    && add-apt-repository --yes universe \
+    && add-apt-repository --yes ppa:deadsnakes/ppa \
     && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get -y upgrade
+    && apt-get -y update
 RUN DEBIAN_FRONTEND=noninteractive \
     echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
     && apt-get install -y --no-install-recommends \
         openjdk-8-jdk ttf-mscorefonts-installer
 RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends wget
+RUN wget http://se.archive.ubuntu.com/ubuntu/pool/main/libp/libpng/libpng12-0_1.2.54-1ubuntu1_amd64.deb
+RUN dpkg -i libpng12-0_1.2.54-1ubuntu1_amd64.deb
+RUN DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
         python ruby-compass gpg-agent \
-        fontconfig libfreetype6 zlib1g \
+        fontconfig zlib1g \
         fonts-liberation \
         libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
         libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
@@ -57,14 +63,15 @@ RUN DEBIAN_FRONTEND=noninteractive \
         openssh-client telnet xz-utils \
         libjpeg-dev  libwebp-dev tcl8.6-dev tk8.6-dev libcups2-dev \
         libffi-dev libssl-dev libsasl2-dev libldap2-dev \
-        libpq-dev libxmlsec1-dev \
-        zlib1g-dev libzip-dev  \
+        libpq-dev libxmlsec1-dev libxslt-dev\
+        zlib1g-dev libzip-dev \
         libtiff5-dev libjpeg8-dev libfreetype6-dev liblcms2-dev\
-        python-dev python2.7-dev software-properties-common \
+        python-dev python2.7-dev python-tk \
+        python-simplejson python-tz \
         python-cherrypy3 python-formencode python-webdav \
         python-egenix-mxdatetime python-pychart python-mako \
         python-feedparser python-libxslt1  python-openid python-passlib python-cups python-lxml \
-        libxml2-dev libxslt1-dev python-dev \
+        libxml2-dev \
     && apt-get remove python-openssl \
     && curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python /dev/stdin \
     && curl -sL https://deb.nodesource.com/setup_12.x | bash -
