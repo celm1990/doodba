@@ -125,6 +125,7 @@ RUN build_deps=" \
         libghc-zlib-dev \
         libharfbuzz-dev \
         libjpeg-dev \
+        libcairo2-dev \
         liblcms2-dev \
         libldap2-dev \
         libopenjp2-7-dev \
