@@ -144,6 +144,8 @@ RUN build_deps=" \
     && curl -o requirements.txt https://raw.githubusercontent.com/$ODOO_SOURCE/$ODOO_VERSION/requirements.txt \
     # disable gevent version recommendation from odoo and use 22.10.2 used in debian bookworm as python3-gevent
     && sed -i -E "s/(gevent==)21\.8\.0( ; sys_platform != 'win32' and python_version == '3.12')/\122.10.2\2/;s/(greenlet==)1.1.2( ; sys_platform != 'win32' and python_version == '3.12')/\12.0.2\2/" requirements.txt \
+    # update reportlab version to 4.2.5 to python 3.12 and install rlPyCairo 0.3.0
+    && sed -i -E "s/(reportlab==)4\.1\.0( ; python_version >= '3\.12')/\14.2.5\2/; \$a rlPyCairo==0.3.0 ; python_version >= '3.12'" requirements.txt \
     && pip install -r requirements.txt \
         'websocket-client~=0.56' \
         astor \
