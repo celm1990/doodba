@@ -54,7 +54,7 @@ jobs:
             python_version: "3.9"
           - odoo_version: "13.0"
             pg_version: "14"
-            python_version: "3.7"
+            python_version: "3.9"
     env:
       # Other variables to configure tests and execution environment
       DOCKER_BUILDKIT: 1
