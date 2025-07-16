@@ -16,71 +16,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
       - name: Set PY
         run: |
           echo "PY=$(python -c 'import hashlib,
           sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
-      - uses: pre-commit/action@v3.0.0
-
-  test:
-    runs-on: ubuntu-24.04
-    needs: pre-commit
-    strategy:
-      fail-fast: false
-      matrix:
-        # Test modern Odoo versions with latest Postgres version
-        odoo_version: ["18.0"]
-        pg_version: ["16"]
-        python_version: ["3.10"]
-        include:
-          # Older odoo versions don't support latest postgres and Python versions
-          - odoo_version: "17.0"
-            pg_version: "15"
-            python_version: "3.10"
-          - odoo_version: "16.0"
-            pg_version: "14"
-            python_version: "3.10"
-          - odoo_version: "15.0"
-            pg_version: "14"
-            python_version: "3.9"
-          - odoo_version: "14.0"
-            pg_version: "14"
-            python_version: "3.9"
-          - odoo_version: "13.0"
-            pg_version: "14"
-            python_version: "3.9"
-    env:
-      # Other variables to configure tests and execution environment
-      DOCKER_BUILDKIT: 1
-      PG_VERSIONS: ${{ matrix.pg_version }}
-      ODOO_MINOR: ${{ matrix.odoo_version }}
-      DOCKER_TAG: ${{ matrix.odoo_version }}
-    steps:
-      # Prepare
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python_version }}
-      # Install dev and test dependencies
-      - run: pip install poetry
-      - name: Patch $PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      # override pyyaml to 5.3.1 as PIP_CONSTRAINT does not work for poetry
-      # to get rid of AttributeError: cython_sources when installing pyyaml
-      - run: poetry add pyyaml==5.3.1
-      - run: poetry install
-      # Test
-      - run: poetry run python -m unittest -v tests
+      - uses: pre-commit/action@v3.0.1
 
   build-push-pr:
+    # Build & push PR images so tests and local dev can pull them
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
-    needs: test
+    needs: pre-commit
     strategy:
       fail-fast: false
       matrix:
@@ -107,7 +58,7 @@ jobs:
     steps:
       - name: Clean Docker system before build
         run: |
-          docker system prune -af || true
+          docker system prune -af --volumes || true
           docker builder prune -af || true
       # Set build date as env variable to be used later
       - name: Set build date
@@ -141,7 +92,7 @@ jobs:
           username: ${{ secrets.BOT_LOGIN }}
           password: ${{ secrets.BOT_TOKEN }}
       - name: Build base image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
@@ -158,7 +109,7 @@ jobs:
             BUILD_DATE=${{ env.BUILD_DATE }}
             ODOO_VERSION=${{ matrix.odoo_version }}
       - name: Build onbuild image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
@@ -167,8 +118,8 @@ jobs:
             ${{ github.repository == 'celm1990/doodba' &&
             github.event.pull_request.head.repo.full_name == github.repository }}
           tags: |
-            ${{ env.DOCKER_REPO }}:${{ matrix.odoo_version }}-onbuild-pr-${{ github.event.pull_request.number }}-test
-            ${{ env.GHCR_HOST }}/${{ env.DOCKER_REPO }}${{ env.DOCKER_REPO_SUFFIX }}:${{ matrix.odoo_version }}-onbuild-pr-${{ github.event.pull_request.number }}-test
+            ${{ env.DOCKER_REPO }}:${{ matrix.odoo_version }}-pr-${{ github.event.pull_request.number }}-test-onbuild
+            ${{ env.GHCR_HOST }}/${{ env.DOCKER_REPO }}${{ env.DOCKER_REPO_SUFFIX }}:${{ matrix.odoo_version }}-pr-${{ github.event.pull_request.number }}-test-onbuild
           target: onbuild
           build-args: |
             VCS_REF=${{ github.sha }}
@@ -176,10 +127,102 @@ jobs:
             ODOO_VERSION=${{ matrix.odoo_version }}
       - name: Clean Docker system after build
         run: |
-          docker system prune -af || true
+          docker system prune -af --volumes || true
           docker builder prune -af || true
 
+  test-pr:
+    # Run tests in PR using the freshly pushed images
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    needs: build-push-pr
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["18.0"]
+        pg_version: ["16"]
+        python_version: ["3.10"]
+        include:
+          - odoo_version: "17.0"
+            pg_version: "15"
+            python_version: "3.10"
+          - odoo_version: "16.0"
+            pg_version: "14"
+            python_version: "3.10"
+          - odoo_version: "15.0"
+            pg_version: "14"
+            python_version: "3.9"
+          - odoo_version: "14.0"
+            pg_version: "14"
+            python_version: "3.9"
+          - odoo_version: "13.0"
+            pg_version: "14"
+            python_version: "3.9"
+    env:
+      DOCKER_BUILDKIT: 1
+      PG_VERSIONS: ${{ matrix.pg_version }}
+      ODOO_MINOR:
+        ${{ matrix.odoo_version }}-pr-${{ github.event.pull_request.number }}-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+      - uses: docker/setup-compose-action@v1
+        with:
+          version: latest
+      - run: pip install poetry
+      - name: Patch $PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - run: poetry install
+      - run: poetry run python -m unittest -v tests
+
+  test:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    needs: pre-commit
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["18.0"]
+        pg_version: ["16"]
+        python_version: ["3.10"]
+        include:
+          - odoo_version: "17.0"
+            pg_version: "15"
+            python_version: "3.10"
+          - odoo_version: "16.0"
+            pg_version: "14"
+            python_version: "3.10"
+          - odoo_version: "15.0"
+            pg_version: "14"
+            python_version: "3.9"
+          - odoo_version: "14.0"
+            pg_version: "14"
+            python_version: "3.9"
+          - odoo_version: "13.0"
+            pg_version: "14"
+            python_version: "3.9"
+    env:
+      DOCKER_BUILDKIT: 1
+      PG_VERSIONS: ${{ matrix.pg_version }}
+      ODOO_MINOR: ${{ matrix.odoo_version }}
+      DOCKER_TAG: ${{ matrix.odoo_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+      - uses: docker/setup-compose-action@v1
+        with:
+          version: latest
+      - run: pip install poetry
+      - name: Patch $PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - run: poetry install
+      - run: poetry run python -m unittest -v tests
+
   build-push-official:
+    # Only publish final images from master after tests pass
     if:
       github.repository == 'celm1990/doodba' && github.ref == 'refs/heads/doodba_custom'
     runs-on: ubuntu-24.04
@@ -203,7 +246,7 @@ jobs:
           - odoo_version: "13.0"
             platforms: "linux/amd64"
     env:
-      # Indicates what's the equivalent to celm1990/doodba:latest image
+      # Indicates what tag matches celm1990/doodba:latest
       LATEST_RELEASE: "18.0"
       # Define the docker hub repository location and github container registry host
       DOCKER_REPO: celm1990/doodba
@@ -211,7 +254,7 @@ jobs:
     steps:
       - name: Clean Docker system before build
         run: |
-          docker system prune -af || true
+          docker system prune -af --volumes || true
           docker builder prune -af || true
       # Set build date as env variable to be used later
       - name: Set build date
@@ -239,7 +282,7 @@ jobs:
           username: ${{ secrets.BOT_LOGIN }}
           password: ${{ secrets.BOT_TOKEN }}
       - name: Build base image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
@@ -258,7 +301,7 @@ jobs:
             BUILD_DATE=${{ env.BUILD_DATE }}
             ODOO_VERSION=${{ matrix.odoo_version }}
       - name: Build onbuild image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
@@ -278,5 +321,5 @@ jobs:
             ODOO_VERSION=${{ matrix.odoo_version }}
       - name: Clean Docker system after build
         run: |
-          docker system prune -af || true
+          docker system prune -af --volumes || true
           docker builder prune -af || true
