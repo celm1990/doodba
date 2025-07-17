@@ -65,7 +65,7 @@ class ScaffoldingCase(unittest.TestCase):
                     "docker",
                     "build",
                     "-t",
-                    f"tecnativa/doodba:{ODOO_VER}-onbuild",
+                    f"celm1990/doodba:{ODOO_VER}-onbuild",
                     "-f",
                     f"{ODOO_VER}.Dockerfile",
                     "--target",
