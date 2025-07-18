@@ -222,7 +222,7 @@ jobs:
       - run: poetry run python -m unittest -v tests
 
   build-push-official:
-    # Only publish final images from master after tests pass
+    # Only publish final images from doodba_custom after tests pass
     if:
       github.repository == 'celm1990/doodba' && github.ref == 'refs/heads/doodba_custom'
     runs-on: ubuntu-24.04
