@@ -136,15 +136,7 @@ jobs:
       fail-fast: false
       matrix:
         odoo_version:
-          &odoo-versions [
-            "13.0",
-            "14.0",
-            "15.0",
-            "16.0",
-            "17.0",
-            "18.0",
-            "19.0",
-          ]
+          &odoo-versions ["13.0", "14.0", "15.0", "16.0", "17.0", "18.0", "19.0"]
         platform: ["amd64", "arm64"]
         exclude:
           - odoo_version: "13.0"
@@ -197,13 +189,9 @@ jobs:
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
-          platforms: ${{ matrix.platforms }}
-          push: ${{ github.repository == 'celm1990/doodba' && github.ref == 'refs/heads/master' }}
-          tags: |
-            ${{ env.DOCKER_REPO }}:${{ matrix.odoo_version }}
-            ${{ env.GHCR_HOST }}/${{ env.DOCKER_REPO }}${{ env.DOCKER_REPO_SUFFIX }}:${{ matrix.odoo_version }}
-            ${{ matrix.odoo_version == env.LATEST_RELEASE && format('{0}:latest', env.DOCKER_REPO) || '' }}
-            ${{ matrix.odoo_version == env.LATEST_RELEASE && format('{0}/{1}{2}:latest', env.GHCR_HOST, env.DOCKER_REPO, env.DOCKER_REPO_SUFFIX) || '' }}
+          platforms: linux/${{ matrix.platform }}
+          push: true
+          cache-from: *cache-from
           target: base
           build-args: |
             VCS_REF=${{ github.sha }}
@@ -233,13 +221,11 @@ jobs:
         with:
           context: .
           file: ./${{ matrix.odoo_version }}.Dockerfile
-          platforms: ${{ matrix.platforms }}
-          push: ${{ github.repository == 'celm1990/doodba' && github.ref == 'refs/heads/master' }}
-          tags: |
-            ${{ env.DOCKER_REPO }}:${{ matrix.odoo_version }}-onbuild
-            ${{ env.GHCR_HOST }}/${{ env.DOCKER_REPO }}${{ env.DOCKER_REPO_SUFFIX }}:${{ matrix.odoo_version }}-onbuild
-            ${{ matrix.odoo_version == env.LATEST_RELEASE && format('{0}:latest-onbuild', env.DOCKER_REPO) || '' }}
-            ${{ matrix.odoo_version == env.LATEST_RELEASE && format('{0}/{1}{2}:latest-onbuild', env.GHCR_HOST, env.DOCKER_REPO, env.DOCKER_REPO_SUFFIX) || '' }}
+          platforms: linux/${{ matrix.platform }}
+          push: true
+          cache-from: *cache-from
+          cache-to: |
+            type=gha,mode=max,scope=doodba-${{ matrix.odoo_version }}-${{ matrix.platform }}-${{ github.ref_name }}
           target: onbuild
           build-args: |
             VCS_REF=${{ github.sha }}
