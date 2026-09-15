@@ -82,16 +82,16 @@ class ScaffoldingCase(unittest.TestCase):
         if "DOCKER_TAG" in os.environ and not use_prebuilt_images:
             print(f"Building {os.environ['DOCKER_TAG']}-onbuild image...")
             cls.build_base_image(
-                f"celm1990/doodba:{os.environ['DOCKER_TAG']}-onbuild",
+                f"celm1990/doodba:{os.environ['DOCKER_TAG']}-onbuild-testonly",
                 f"{os.environ['ODOO_MINOR']}.Dockerfile",
             )
         elif not use_prebuilt_images:
             # We build the “onbuild” images with the latest changes for
             # testing instead of relying on the latest published ones.
             for ODOO_VER in ODOO_VERSIONS:
-                print(f"Building {ODOO_VER}-onbuild image...")
+                print(f"Building {ODOO_VER}-onbuild-testonly image...")
                 cls.build_base_image(
-                    f"celm1990/doodba:{ODOO_VER}-onbuild",
+                    f"celm1990/doodba:{ODOO_VER}-onbuild-testonly",
                     f"{ODOO_VER}.Dockerfile",
                 )
         else:
@@ -363,8 +363,35 @@ class ScaffoldingCase(unittest.TestCase):
         )
         smallest_dir = join(SCAFFOLDINGS_DIR, "smallest")
         for sub_env in matrix():
+            if float(sub_env["ODOO_MINOR"]) >= 19.0:
+                # Replicas disabled with None
+                replica_command = (
+                    "grep",
+                    "-x",
+                    "db_replica_host = None",
+                    "/opt/odoo/auto/odoo.conf",
+                )
+            elif float(sub_env["ODOO_MINOR"]) >= 18.0:
+                # Replicas disabled with false
+                replica_command = (
+                    "grep",
+                    "-x",
+                    "db_replica_host = false",
+                    "/opt/odoo/auto/odoo.conf",
+                )
+            else:
+                # Replicas unsupported, settings must not be shipped
+                replica_command = (
+                    "bash",
+                    "-xc",
+                    "! grep -q db_replica /opt/odoo/auto/odoo.conf",
+                )
             self.compose_test(
-                smallest_dir, sub_env, *commands, ("python", "-c", "import watchdog")
+                smallest_dir,
+                sub_env,
+                *commands,
+                replica_command,
+                ("python", "-c", "import watchdog"),
             )
 
     def test_addons_env(self):
@@ -856,6 +883,18 @@ class ScaffoldingCase(unittest.TestCase):
                     "-v",
                     "{}",
                     ";",
+                ),
+                # check chromium version
+                ("chromium", "--version"),
+                # check that chromium is working before testing with odoo
+                (
+                    "chromium",
+                    "--no-sandbox",
+                    "--headless",
+                    "--dump-dom",
+                    "--enable-logging=stderr",
+                    "--v=1",
+                    "about:blank",
                 ),
                 # install odoo base module
                 (

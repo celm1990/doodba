@@ -1,2 +1,2 @@
 ARG ODOO_VERSION
-FROM celm1990/doodba:${ODOO_VERSION}-onbuild
+FROM celm1990/doodba:${ODOO_VERSION}-onbuild-testonly

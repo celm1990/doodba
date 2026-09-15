@@ -8,9 +8,11 @@
   "python.linting.pylintEnabled": true,
   "python.pythonPath": "python3",
   "editor.formatOnSave": true,
-
   "[dockerfile]": {
     "editor.formatOnSave": false
   },
-  "python.analysis.extraPaths": ["./lib", "./tests"]
+  "python.analysis.extraPaths": ["./lib", "./tests"],
+  "python.testing.unittestArgs": ["-v", "-s", "./tests", "-p", "*test*.py"],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true
 }
