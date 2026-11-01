@@ -1,2 +1,2 @@
 ARG ODOO_VERSION
-FROM tecnativa/doodba:${ODOO_VERSION}-onbuild-testonly
+FROM celm1990/doodba:${ODOO_VERSION}-onbuild-testonly

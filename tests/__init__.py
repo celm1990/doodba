@@ -82,7 +82,7 @@ class ScaffoldingCase(unittest.TestCase):
         if "DOCKER_TAG" in os.environ and not use_prebuilt_images:
             print(f"Building {os.environ['DOCKER_TAG']}-onbuild image...")
             cls.build_base_image(
-                f"tecnativa/doodba:{os.environ['DOCKER_TAG']}-onbuild-testonly",
+                f"celm1990/doodba:{os.environ['DOCKER_TAG']}-onbuild-testonly",
                 f"{os.environ['ODOO_MINOR']}.Dockerfile",
             )
         elif not use_prebuilt_images:
@@ -91,7 +91,7 @@ class ScaffoldingCase(unittest.TestCase):
             for ODOO_VER in ODOO_VERSIONS:
                 print(f"Building {ODOO_VER}-onbuild-testonly image...")
                 cls.build_base_image(
-                    f"tecnativa/doodba:{ODOO_VER}-onbuild-testonly",
+                    f"celm1990/doodba:{ODOO_VER}-onbuild-testonly",
                     f"{ODOO_VER}.Dockerfile",
                 )
         else:
