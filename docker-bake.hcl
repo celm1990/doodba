@@ -1,5 +1,5 @@
 variable "IMAGE_NAME" {
-    default = "tecnativa/doodba"
+    default = "celm1990/doodba"
 }
 variable "VERSIONS" {
     type = list(string)
