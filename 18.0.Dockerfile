@@ -1,6 +1,6 @@
 FROM scratch AS ctx
 COPY system_files /
-FROM python:3.10-slim-bookworm AS base
+FROM python:3.12-slim-bookworm AS base
 ARG ODOO_VERSION=18.0
 ENV ODOO_VERSION="$ODOO_VERSION"
 EXPOSE 8069 8072
@@ -130,6 +130,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,id=apt-lists-${TARGETARCH}-${OD
         libghc-zlib-dev \
         libharfbuzz-dev \
         libjpeg-dev \
+        libcairo2-dev \
         liblcms2-dev \
         libldap2-dev \
         libopenjp2-7-dev \
@@ -147,7 +148,9 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,id=apt-lists-${TARGETARCH}-${OD
     && apt-get install -yqq --no-install-recommends $build_deps \
     && curl -o requirements.txt https://raw.githubusercontent.com/$ODOO_SOURCE/$ODOO_VERSION/requirements.txt \
     # disable gevent version recommendation from odoo and use 22.10.2 used in debian bookworm as python3-gevent
-    && sed -i -E "s/(gevent==)21\.8\.0( ; sys_platform != 'win32' and python_version == '3.10')/\122.10.2\2/;s/(greenlet==)1.1.2( ; sys_platform != 'win32' and python_version == '3.10')/\12.0.2\2/" requirements.txt \
+    && sed -i -E "s/(gevent==)21\.8\.0( ; sys_platform != 'win32' and python_version == '3.12')/\122.10.2\2/;s/(greenlet==)1.1.2( ; sys_platform != 'win32' and python_version == '3.12')/\12.0.2\2/" requirements.txt \
+    # update reportlab version to 4.2.5 to python 3.12 and install rlPyCairo 0.3.0
+    && sed -i -E "s/(reportlab==)4\.1\.0( ; python_version >= '3\.12')/\14.2.5\2/; \$a rlPyCairo==0.3.0 ; python_version >= '3.12'" requirements.txt \
     # cbor2==5.4.2.post1 doesn't build on arm, so we use 5.4.6 that comes prebuilt on arm
     && sed -i -E "s/(cbor2==)5\.4\.2\.post1( ; python_version < '3.11')/\15.4.6\2/" requirements.txt \
     # need to upgrade setuptools, since the fixes for CVE-2024-6345 rolled out in base images we get errors "error: invalid command 'bdist_wheel'"
