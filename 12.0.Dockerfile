@@ -1,4 +1,4 @@
-FROM python:3.5-stretch AS base
+FROM python:3.7-stretch AS base
 
 EXPOSE 8069 8072
 
@@ -56,8 +56,8 @@ RUN apt-get -qq update \
         ca-certificates \
     && echo 'deb https://apt-archive.postgresql.org/pub/repos/apt stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && curl https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3 /dev/stdin \
-    && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && curl https://bootstrap.pypa.io/pip/get-pip.py | python3 /dev/stdin \
+    && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
     && apt-get update \
     && apt-get install -yqq --no-install-recommends nodejs \
     && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.stretch_amd64.deb \
@@ -202,6 +202,7 @@ ONBUILD ARG PGHOST=db
 ONBUILD ARG PGPORT=5432
 ONBUILD ARG PGDATABASE=prod
 ONBUILD ARG GITHUB_TOKEN
+ONBUILD ARG GITLAB_TOKEN
 # Config variables
 ONBUILD ENV ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             DEFAULT_REPO_PATTERN="$DEFAULT_REPO_PATTERN" \

@@ -1,4 +1,4 @@
-FROM python:3.5-stretch AS base
+FROM python:3.7-stretch AS base
 
 EXPOSE 8069 8072
 
@@ -55,11 +55,24 @@ RUN apt-get -qq update \
         zlibc \
         apt-transport-https \
         ca-certificates \
+        libfreetype6 liblcms2-2 libtiff5 tk tcl libpq5 \
+        libldap-2.4-2 libsasl2-2 libx11-6 libxext6 libxrender1 \
+        libjpeg-dev  libwebp-dev tcl8.6-dev tk8.6-dev libcups2-dev \
+        libffi-dev libssl-dev libsasl2-dev libldap2-dev \
+        libpq-dev libxmlsec1-dev \
+        libtiff5-dev libfreetype6-dev liblcms2-dev\
+        python3-dev software-properties-common \
+        libxml2-dev libxslt1-dev \
     && echo 'deb https://apt-archive.postgresql.org/pub/repos/apt stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list \
     && curl -SL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && curl https://bootstrap.pypa.io/pip/3.5/get-pip.py | python3 /dev/stdin \
-    && curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+    && curl https://bootstrap.pypa.io/pip/get-pip.py | python3 /dev/stdin \
+    && curl -sL https://deb.nodesource.com/setup_7.x | bash - \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y g++ gcc unixodbc unixodbc-dev msodbcsql17 mssql-tools \
+    && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
+    && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc \
     && apt-get install -yqq --no-install-recommends nodejs \
     && curl -SLo wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/wkhtmltox_${WKHTMLTOPDF_VERSION}-1.stretch_amd64.deb \
     && echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c - \
