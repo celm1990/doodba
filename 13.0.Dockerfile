@@ -1,6 +1,6 @@
 FROM scratch AS ctx
 COPY system_files /
-FROM python:3.6-slim-buster AS base
+FROM python:3.7-slim-buster AS base
 ARG ODOO_VERSION=13.0
 ENV ODOO_VERSION="$ODOO_VERSION"
 EXPOSE 8069 8072
